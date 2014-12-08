@@ -3,10 +3,11 @@ var PlayState = {
   },
   create: function() {
     this.spawnQueue = [];
+    this.spawnQueueQueue = [];
     this.spawnCooldown = 0;
     this.spawnCount = 0;
 
-    this.player = this.spawn("player");
+    this.player = this.spawn("player", 1024 / 2 - 10, 768 / 2 - 10);
     this.playerBullets = game.add.group();
     this.enemies = game.add.group();
     this.cursors = game.input.keyboard.createCursorKeys();
@@ -17,13 +18,8 @@ var PlayState = {
 
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
-    this.createSpawns("the screen", 2000, 3);
-    this.createSpawns("the screen", 500, 0);
-    this.createSpawns("is all", 0);
-    this.createSpawns("that is", 500);
-    this.createSpawns("or was", 500);
-    this.createSpawns("or ever", 0);
-    this.createSpawns("will be", 500);
+    this.spawnQueueQueue.push({text: "the screen", delay: 2000, line: 2});
+    this.fillSpawnQueueQueue();
   },
   update: function() {
     var _this = this;
@@ -40,9 +36,12 @@ var PlayState = {
       this.spawn(spawn.type, spawn.x, spawn.y, spawn.activateTime);
       this.spawnCooldown += 30;
     }
-    else {
-      // this.createSpawns("hello");
-      // this.createSpawns("the cosmos is all that is or was or ever will be");
+    else if (!this.spawnQueue.length) {
+      var spawnQueue = this.spawnQueueQueue.shift();
+      if (!this.spawnQueueQueue.length) {
+        this.fillSpawnQueueQueue();
+      }
+      this.createSpawns(spawnQueue.text, spawnQueue.delay, spawnQueue.line);
     }
 
     if (this.player) {
@@ -72,7 +71,7 @@ var PlayState = {
       }
 
       if (game.input.activePointer.isDown && !this.player.state.cooldown) {
-        this.spawn("playerBullet", this.player.x, this.player.y);
+        this.spawn("playerBullet", this.player.x + this.player.body.width / 2 - 2, this.player.y + this.player.body.height / 2 - 2);
         this.player.state.cooldown += 40;
       }
 
@@ -183,5 +182,13 @@ var PlayState = {
       }
     }
     this.spawnQueue.push({type: "pause", x: pause});
+  },
+  fillSpawnQueueQueue: function() {
+    this.spawnQueueQueue.push({text: "the screen", delay: 500, line: 0});
+    this.spawnQueueQueue.push({text: "is all", delay: 0});
+    this.spawnQueueQueue.push({text: "that is", delay: 500});
+    this.spawnQueueQueue.push({text: "or was", delay: 500});
+    this.spawnQueueQueue.push({text: "or ever", delay: 0});
+    this.spawnQueueQueue.push({text: "will be", delay: 500});
   }
 };
